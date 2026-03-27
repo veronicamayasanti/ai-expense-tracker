@@ -1,0 +1,12 @@
+node_modules
+client/node_modules
+server/node_modules
+
+# Keep environment variables out of version control
+.env
+server/.env
+
+# Prisma
+/server/prisma/generated
+/server/prisma/query-engine-*
+/server/prisma/migration-lock.toml
