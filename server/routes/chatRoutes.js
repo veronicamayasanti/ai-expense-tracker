@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { processChat } = require('../controllers/chatController');
+const authMiddleware = require('../middleware/auth.middleware');
 
-router.post('/', processChat);
+// Protect chat with auth
+router.post('/', authMiddleware, processChat);
 
 module.exports = router;

@@ -6,29 +6,38 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'create_expense',
-      description: 'Tambah pengeluaran baru ke database',
+      name: 'create_transaction',
+      description: 'Tambah transaksi baru (pemasukan atau pengeluaran) ke database',
       parameters: {
         type: 'object',
         properties: {
           amount: {
             type: 'integer',
-            description: 'Nominal pengeluaran dalam Rupiah (e.g., 25000)',
+            description: 'Nominal dalam Rupiah (e.g., 25000)',
           },
           description: {
             type: 'string',
-            description: 'Deskripsi singkat pengeluaran (e.g., kopi, makan siang)',
+            description: 'Deskripsi singkat (e.g., kopi, gaji bulanan)',
+          },
+          category: {
+            type: 'string',
+            description: 'Kategori transaksi (e.g., Makan, Transportasi, Gaji, Bonus, Belanja, Tagihan)',
+          },
+          type: {
+            type: 'string',
+            enum: ['INCOME', 'EXPENSE'],
+            description: 'Tipe transaksi: INCOME untuk pemasukan, EXPENSE untuk pengeluaran',
           },
         },
-        required: ['amount', 'description'],
+        required: ['amount', 'description', 'type'],
       },
     },
   },
   {
     type: 'function',
     function: {
-      name: 'get_total_expense',
-      description: 'Mendapat total pengeluaran dalam rentang tanggal tertentu',
+      name: 'get_financial_stats',
+      description: 'Mendapat ringkasan keuangan (total pemasukan, pengeluaran, saldo) dalam rentang tanggal tertentu',
       parameters: {
         type: 'object',
         properties: {
@@ -47,35 +56,28 @@ const tools = [
   },
 ];
 
-const systemPrompt = `
-Kamu adalah AI assistant untuk mencatat dan menganalisis pengeluaran pribadi.
+const getSystemPrompt = (userName) => `
+Kamu adalah AI assistant keuangan pribadi bernama "Maya" untuk user bernama ${userName}.
 
-Tugas utama kamu adalah mengubah input bahasa natural dari user menjadi function call yang sesuai. Kamu bukan chatbot biasa, dan kamu tidak boleh memberikan jawaban dalam bentuk teks bebas jika function tersedia.
+Tugas utama kamu adalah mencatat pemasukan dan pengeluaran ke database melalui function call.
 
-Konteks sistem:
-* Aplikasi digunakan oleh 1 user (single user)
-* Semua transaksi adalah pengeluaran dalam mata uang Rupiah
-* Data akan disimpan ke database MySQL
-* Field yang tersedia: amount (number), description (string), created_at (otomatis)
-
-Aturan penting:
-1. Selalu gunakan function call jika memungkinkan
-2. Jangan pernah menjawab dengan teks biasa jika request bisa dipetakan ke function
-3. Semua nominal harus dalam bentuk angka (integer), tanpa simbol (contoh: "25 ribu" → 25000, "10k" → 10000)
-4. Deskripsi harus singkat dan jelas (contoh: "kopi", "makan siang", "parkir")
-5. Jika user meminta total pengeluaran, gunakan function get_total_expense dengan format tanggal YYYY-MM-DD
-6. Jika user menggunakan kata seperti "hari ini", "kemarin", atau "minggu ini", ubah ke tanggal yang sesuai
-7. Jangan menebak jika informasi tidak lengkap atau ambigu
-8. Abaikan input yang tidak berhubungan dengan pengeluaran
+Aturan Penting:
+1. Identifikasi Tipe: 
+   - "Gaji", "Bonus", "Transfer masuk", "Dapat uang" adalah INCOME.
+   - "Beli", "Bayar", "Makan", "Kopi", "Parkir" adalah EXPENSE.
+2. Nominal: Ubah kata seperti "20rb" jadi 20000, "1jt" jadi 1000000.
+3. Kategori: Jika user tidak menyebutkan, berikan kategori yang paling relevan (misal: "kopi" -> "Makan & Minum").
+4. Tanggal: Gunakan waktu sekarang sebagai referensi untuk "hari ini", "kemarin", dll.
+5. Jawaban: Jika berhasil mencatat, berikan respon yang ramah dan konfirmasi detailnya.
 
 Waktu sekarang: ${new Date().toISOString().split('T')[0]}
 `;
 
-async function processUserInput(input) {
+async function processUserInput(input, userProfile) {
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: getSystemPrompt(userProfile.name) },
       { role: 'user', content: input },
     ],
     tools: tools,

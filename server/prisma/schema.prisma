@@ -12,9 +12,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Expense {
-  id          Int      @id @default(autoincrement())
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  whatsapp     String?
+  avatar       String?
+  password     String
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
   amount      Int
   description String
-  createdAt   DateTime @default(now())
+  category    String?
+  type        TransactionType @default(EXPENSE)
+  user        User            @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime        @default(now())
 }
