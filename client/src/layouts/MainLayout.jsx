@@ -1,8 +1,8 @@
 import React from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from './components/Sidebar';
 import { NavLink } from 'react-router-dom';
 
-const Layout = ({ children }) => {
+const MainLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-surface">
       <Sidebar />
@@ -38,4 +38,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default MainLayout;

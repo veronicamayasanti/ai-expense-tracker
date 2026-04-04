@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout/Layout';
-import TopBar from '../components/Layout/TopBar';
-import { transactionService } from '../services/api';
+import Layout from '../../../layouts/MainLayout';
+import TopBar from '../../../layouts/components/TopBar';
+import { transactionService } from '../services/transactionService';
 
 const Records = () => {
   const [history, setHistory] = useState([]);
@@ -60,7 +60,7 @@ const Records = () => {
                   </div>
                   <div className="text-right">
                     <p className={`font-black text-lg leading-none mb-1 ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
-                      {tx.type === 'INCOME' ? '+' : '-'}${tx.amount.toLocaleString()}
+                      {tx.type === 'INCOME' ? '+' : '-'}Rp {tx.amount.toLocaleString()}
                     </p>
                     <span className="text-[8px] font-bold uppercase tracking-tighter text-slate-400 px-1.5 py-0.5 bg-slate-50 rounded-full border border-slate-100 italic">Confirmed</span>
                   </div>
@@ -117,7 +117,7 @@ const Records = () => {
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className={`text-base font-black tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {tx.type === 'INCOME' ? '+' : '-'}${tx.amount.toLocaleString()}
+                        {tx.type === 'INCOME' ? '+' : '-'}Rp {tx.amount.toLocaleString()}
                       </div>
                     </td>
                     <td className="px-8 py-6 text-center">

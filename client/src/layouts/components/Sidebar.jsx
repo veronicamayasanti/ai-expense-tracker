@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useUser } from '../../context/UserContext';
+import { useUser } from '../../store/UserContext';
 
 const Sidebar = () => {
   const { logout, user } = useUser();
@@ -55,11 +55,10 @@ const Sidebar = () => {
               className="w-full h-full object-cover" 
             />
           </div>
-          <div className="flex flex-col truncate">
+          <div className="flex flex-col min-w-0">
             <span className="text-sm font-black text-slate-900 truncate tracking-tight">
               {user?.name || 'Guest'}
             </span>
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none mt-1">Maya AI Engineer</span>
           </div>
         </div>
         <button

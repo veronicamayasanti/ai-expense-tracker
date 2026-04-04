@@ -1,50 +1,64 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
-import { authService } from '../services/api';
+import { useUser } from '../../../store/UserContext';
+import { authService } from '../services/authService';
 import { motion } from 'framer-motion';
 
-const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+const Register = () => {
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useUser();
   const navigate = useNavigate();
 
-  const handleManualLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      const response = await authService.login(formData.email, formData.password);
+      if (formData.password.length < 6) {
+        throw new Error('Password minimal 6 karakter');
+      }
+      await authService.register(formData.name, formData.email, formData.password);
       login(formData.email);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login gagal. Periksa kembali email dan password.');
+      setError(err.response?.data?.error || err.message || 'Gagal registrasi. Coba email lain.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-6 font-manrope selection:bg-primary/20">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-6 font-manrope selection:bg-primary/20 text-bold">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-primary/5 border border-slate-100 p-10"
       >
         <div className="text-center mb-10">
           <Link to="/" className="inline-block mb-6">
-            <img src="/arthaku.png" alt="ArthaKu Symbol" className="w-24 h-24 mx-auto shadow-xl shadow-primary/10 rounded-3xl" />
+            <img src="/arthaku.png" alt="ArthaKu Symbol" className="w-24 h-24 mx-auto shadow-lg shadow-primary/10 rounded-3xl" />
           </Link>
           <div className="flex flex-col items-center gap-2 mb-2">
-            <img src="/tulisan arthaku.png" alt="ArthaKu" className="h-12 object-contain" />
+            <img src="/tulisan arthaku.png" alt="ArthaKu" className="h-10 object-contain" />
           </div>
-          <p className="text-slate-500 font-medium mt-4 italic">Masuk ke ruang arsitektur keuangan Anda</p>
+          <p className="text-slate-400 mt-4 font-medium italic">Mulai perjalanan arsitektur finansial Anda</p>
         </div>
 
-        <form onSubmit={handleManualLogin} className="space-y-6">
+        <form onSubmit={handleRegister} className="space-y-6">
           <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Full Name</label>
+              <input 
+                type="text" 
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                placeholder="Alex Sterling"
+                className="w-full bg-slate-50 border-0 border-b-2 border-slate-100 focus:border-primary focus:ring-0 transition-all px-4 py-4 text-slate-900 font-semibold rounded-t-xl"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Corporate Email</label>
               <input 
@@ -57,7 +71,7 @@ const Login = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Security Key (Password)</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Secret Key (Password)</label>
               <input 
                 type="password" 
                 value={formData.password}
@@ -66,6 +80,7 @@ const Login = () => {
                 className="w-full bg-slate-50 border-0 border-b-2 border-slate-100 focus:border-primary focus:ring-0 transition-all px-4 py-4 text-slate-900 font-semibold rounded-t-xl"
                 required
               />
+              <p className="text-[9px] text-slate-400 italic px-1">*Minimal 6 karakter alfanumerik</p>
             </div>
           </div>
 
@@ -84,16 +99,16 @@ const Login = () => {
             disabled={loading}
             className="w-full bg-primary text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {loading ? 'Authenticating...' : 'Sign In Now'}
+            {loading ? 'Processing Registration...' : 'Konfirmasi Registrasi'}
           </button>
         </form>
 
-        <p className="text-center mt-10 text-sm font-medium text-slate-500 italic">
-          Belum menjadi anggota? <Link to="/register" className="text-primary font-black hover:underline not-italic ml-1">Buka Rekening Baru</Link>
+        <p className="text-center mt-10 text-sm font-medium text-slate-400">
+          Sudah memiliki akses? <Link to="/login" className="text-primary font-black hover:underline ml-1">Masuk Kembali</Link>
         </p>
       </motion.div>
     </div>
   );
 };
 
-export default Login;
+export default Register;

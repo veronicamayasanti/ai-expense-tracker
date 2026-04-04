@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../store/UserContext';
 import { motion } from 'framer-motion';
 
 const Landing = () => {

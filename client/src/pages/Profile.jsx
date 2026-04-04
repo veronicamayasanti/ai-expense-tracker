@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout/Layout';
-import TopBar from '../components/Layout/TopBar';
-import { userService } from '../services/api';
-import { useUser } from '../context/UserContext';
+import Layout from '../layouts/MainLayout';
+import TopBar from '../layouts/components/TopBar';
+import { userService } from '../features/auth/services/authService';
+import { useUser } from '../store/UserContext';
 import { motion } from 'framer-motion';
 
 const Profile = () => {

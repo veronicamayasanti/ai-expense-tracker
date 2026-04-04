@@ -9,7 +9,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const savedEmail = localStorage.getItem('userEmail');
     if (savedEmail) {
-      // Simulate fetching profile
+      // Restore user state from localStorage
       setUser({ email: savedEmail, name: savedEmail.split('@')[0] });
     }
     setLoading(false);
