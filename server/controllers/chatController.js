@@ -1,23 +1,23 @@
-const { processUserInput } = require('../services/aiService');
+const { getSystemPrompt, tools } = require('../services/aiService');
 const transactionService = require('../services/transactionService');
+const { OPENAI_API_KEY } = require('../config/env');
+const OpenAI = require('openai');
+
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 async function processChat(req, res) {
   const { input } = req.body;
   const user = req.user;
 
-  if (!input) return res.status(400).json({ error: 'Input required' });
+  if (!input) return res.status(400).json({ status: 'error', message: 'Input required' });
 
-  // Initialize message history for this turn
+  // Initialize message history
   let messages = [
-    { role: 'system', content: require('../services/aiService').getSystemPrompt(user.name) },
+    { role: 'system', content: getSystemPrompt(user.name) },
     { role: 'user', content: input }
   ];
 
   try {
-    const OpenAI = require('openai');
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const { tools } = require('../services/aiService');
-
     let response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: messages,
@@ -27,14 +27,25 @@ async function processChat(req, res) {
 
     let aiMessage = response.choices[0].message;
     const finalResults = [];
+    
+    let loopCount = 0;
+    const MAX_LOOPS = 5;
 
-    // Loop to handle tool calls
-    while (aiMessage.tool_calls) {
+    // Loop to handle tool calls with safety guard
+    while (aiMessage.tool_calls && loopCount < MAX_LOOPS) {
+      loopCount++;
       messages.push(aiMessage);
       
       for (const toolCall of aiMessage.tool_calls) {
         const functionName = toolCall.function.name;
-        const args = JSON.parse(toolCall.function.arguments);
+        let args = {};
+        
+        try {
+          args = JSON.parse(toolCall.function.arguments);
+        } catch (parseErr) {
+          console.error('Failed to parse tool arguments:', parseErr);
+        }
+
         let resultData;
 
         if (functionName === 'create_transaction') {
@@ -49,7 +60,7 @@ async function processChat(req, res) {
           tool_call_id: toolCall.id,
           role: 'tool',
           name: functionName,
-          content: JSON.stringify(resultData || { error: 'Data tidak ditemukan' }),
+          content: JSON.stringify(resultData || { error: 'Gagal mendapatkan data atau data tidak ditemukan' }),
         });
       }
 
@@ -59,6 +70,10 @@ async function processChat(req, res) {
         messages: messages,
       });
       aiMessage = response.choices[0].message;
+    }
+
+    if (loopCount >= MAX_LOOPS) {
+      console.warn('Chat loop guard triggered (MAX_LOOPS reached)');
     }
 
     const finalResponseText = aiMessage.content || 'Saya sudah memproses data Anda, Kak! Ada lagi yang bisa Artha bantu?';
@@ -74,7 +89,7 @@ async function processChat(req, res) {
     res.status(500).json({ 
       status: 'error', 
       message: 'Gagal memproses pesan', 
-      details: error.message 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }

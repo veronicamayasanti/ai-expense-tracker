@@ -7,21 +7,31 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('userEmail');
-    if (savedEmail) {
-      // Restore user state from localStorage
-      setUser({ email: savedEmail, name: savedEmail.split('@')[0] });
+    const savedUser = localStorage.getItem('userData');
+    const savedToken = localStorage.getItem('authToken');
+    
+    if (savedUser && savedToken) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (err) {
+        console.error('Failed to parse saved user data:', err);
+        localStorage.removeItem('userData');
+        localStorage.removeItem('authToken');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = (email) => {
-    localStorage.setItem('userEmail', email);
-    setUser({ email, name: email.split('@')[0] });
+  const login = (userData, token) => {
+    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem('authToken', token);
+    setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('chatMessages');
     setUser(null);
   };
 

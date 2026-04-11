@@ -17,10 +17,11 @@ const Login = () => {
     setError('');
     try {
       const response = await authService.login(formData.email, formData.password);
-      login(formData.email);
+      const { user, token } = response.data.data;
+      login(user, token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login gagal. Periksa kembali email dan password.');
+      setError(err.response?.data?.message || err.response?.data?.error || 'Login gagal. Periksa kembali email dan password.');
     } finally {
       setLoading(false);
     }

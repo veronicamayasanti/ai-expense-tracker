@@ -1,5 +1,12 @@
 const { getUserProfile, updateUser } = require('../models/user.model');
 
+// Helper to sanitize user object
+const sanitizeUser = (user) => {
+  if (!user) return null;
+  const { password, ...userSansPassword } = user;
+  return userSansPassword;
+};
+
 async function getProfile(req, res) {
   try {
     const id = req.user.id;
@@ -7,10 +14,10 @@ async function getProfile(req, res) {
     
     res.json({
       status: 'success',
-      data: profile
+      data: sanitizeUser(profile)
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 }
 
@@ -24,10 +31,10 @@ async function updateProfile(req, res) {
     res.json({
       status: 'success',
       message: 'Profil berhasil diperbarui',
-      data: updatedUser
+      data: sanitizeUser(updatedUser)
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 }
 

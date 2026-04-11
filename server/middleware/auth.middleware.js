@@ -1,32 +1,33 @@
+const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/env');
 const { findUserByEmail } = require('../models/user.model');
-const fs = require('fs');
-const path = require('path');
-
-const debugLog = (msg) => {
-  const timestamp = new Date().toISOString();
-  fs.appendFileSync(path.join(__dirname, '../server_debug.log'), `[${timestamp}] ${msg}\n`);
-};
 
 async function authMiddleware(req, res, next) {
-  const userEmail = req.headers['x-user-email'];
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
   
-  if (!userEmail) {
-    debugLog('AUTH ERROR: No x-user-email found in headers.');
-    return res.status(401).json({ status: 'error', message: 'Unauthorized. User email required in headers.' });
+  if (!token) {
+    return res.status(401).json({ status: 'error', message: 'Unauthorized. Token required.' });
   }
 
   try {
-    const user = await findUserByEmail(userEmail);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Support both ID and email in payload
+    const user = await findUserByEmail(decoded.email);
+    
     if (!user) {
-      debugLog(`AUTH ERROR: User not found for email: ${userEmail}`);
-      return res.status(404).json({ status: 'error', message: 'User not found. Please register first.' });
+      return res.status(404).json({ status: 'error', message: 'User associated with token not found.' });
     }
     
-    req.user = user;
+    // Attach sanitised user to request
+    const { password, ...userSansPassword } = user;
+    req.user = userSansPassword;
     next();
   } catch (error) {
-    debugLog(`AUTH FATAL ERROR: ${error.message}`);
-    res.status(500).json({ status: 'error', message: 'Internal Server Error during auth' });
+    console.error('Auth Error:', error.message);
+    const message = error.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token';
+    res.status(401).json({ status: 'error', message });
   }
 }
 

@@ -25,8 +25,18 @@ async function getStats(userId, startDate, endDate) {
   };
 }
 
-async function getHistory(userId, limit) {
-  return await getRecentTransactions(userId, limit);
+async function getHistory(userId, limit, page) {
+  const [transactions, totalCount] = await Promise.all([
+    getRecentTransactions(userId, limit, page),
+    require('../models/transaction.model').countTransactions(userId)
+  ]);
+  
+  return {
+    transactions,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: parseInt(page)
+  };
 }
 
 module.exports = {

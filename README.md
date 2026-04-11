@@ -1,108 +1,68 @@
 # 💰 AI Expense Tracker
 
-Aplikasi pencatat pengeluaran pribadi modern yang didukung oleh AI untuk menerjemahkan bahasa alami (natural language) menjadi entri pengeluaran yang terstruktur.
+Aplikasi pencatat pengeluaran pribadi modern yang didukung oleh AI untuk menerjemahkan bahasa alami menjadi entri pengeluaran yang terstruktur. Kini dilengkapi dengan sistem keamanan JWT dan validasi data yang lebih ketat.
 
 ![AI Expense Tracker](https://img.shields.io/badge/Status-Active-success) ![Node.js](https://img.shields.io/badge/Node.js-Backend-green) ![React](https://img.shields.io/badge/React-Frontend-blue) ![OpenAI](https://img.shields.io/badge/OpenAI-GPT4o-orange)
 
 ## 🛠️ Teknologi yang Digunakan
 
 ### Backend (API & AI Processing)
-- **Node.js**: Sebagai runtime backend utama.
-- **Express**: Framework untuk membangun REST API.
-- **Prisma ORM**: Menangani interaksi dengan database dan skema generasi.
-- **MySQL**: Database relasional untuk menyimpan data pengeluaran.
-- **OpenAI (GPT-4o)**: Memproses input teks (misalnya "makan siang 35rb") untuk secara otomatis mengenali *intent* (tujuan) dan mengekstrak data nominal serta kategori.
+- **Node.js & Express**: Framework backend utama.
+- **Prisma ORM**: Interaksi database MySQL yang type-safe.
+- **JWT (JSON Web Token)**: Sistem autentikasi berbasis token untuk keamanan sesi.
+- **Bcrypt.js**: Pengamanan password dengan hashing satu arah.
+- **OpenAI (GPT-4o)**: NLP Engine untuk mengekstrak data transaksi dari teks natural.
 
 ### Frontend (User Interface)
-- **React.js**: Library utama untuk membangun antarmuka pengguna yang interaktif.
-- **Vite**: Build tool yang sangat cepat untuk frontend React.
-- **Tailwind CSS**: Untuk styling yang modern dan responsif.
-- **Lucide React**: Untuk menyematkan ikon-ikon yang elegan.
+- **React.js (Vite)**: Library UI yang cepat dan reaktif.
+- **UserContext API**: Manajemen state autentikasi global.
+- **Axios**: Komunikasi data dengan backend melalui interceptor token.
+- **Tailwind CSS & Framer Motion**: Antarmuka premium dengan animasi halus.
 
 ---
 
-## ⚡ Cara Menjalankan Aplikasi (Quick Start)
+## ⚡ Cara Menjalankan Aplikasi
 
-### 1. Persyaratan Sistem (Prerequisites)
-- [Node.js](https://nodejs.org/) (minimal versi 18+)
-- Server MySQL (bisa berjalan secara lokal via XAMPP/Docker atau hosted)
-- Akun OpenAI untuk mendapatkan `OPENAI_API_KEY`
+### 1. Persyaratan Sistem
+- Node.js (v18+)
+- MySQL Server
+- OpenAI API Key
 
-### 2. Setup Lingkungan & Database (Backend)
-
-1. Buka terminal dan masuk ke folder `server/`:
-   ```bash
-   cd server
-   ```
-2. Instal semua dependensi backend:
-   ```bash
-   npm install
-   ```
-3. Buat file `.env` di folder `server/` (jika belum ada) dan sesuaikan kredensial Anda:
+### 2. Setup Backend
+1. Masuk ke folder `server/`: `cd server`
+2. Instal dependensi: `npm install`
+3. Salin `.env.example` menjadi `.env` dan isi variabelnya:
    ```env
-   # Contoh konfigurasi .env
-   DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DB_NAME"
-   OPENAI_API_KEY="sk-YOUR_KEY_HERE"
+   DATABASE_URL="mysql://root:password@localhost:3306/expense_tracker"
+   OPENAI_API_KEY="sk-..."
+   JWT_SECRET="masukkan_random_string_panjang_disini"
+   JWT_EXPIRES_IN="7d"
    ```
-4. Lakukan sinkronisasi skema Prisma ke database:
+4. Push skema ke database:
    ```bash
    npx prisma db push
    npx prisma generate
    ```
+5. Jalankan server: `node app.js`
 
 ### 3. Setup Frontend
-
-1. Buka terminal baru dan masuk ke folder `client/`:
-   ```bash
-   cd client
-   ```
-2. Instal semua dependensi frontend:
-   ```bash
-   npm install
-   ```
-
-### 4. Menjalankan Aplikasi
-
-Aplikasi berjalan pada dua layanan terpisah (Backend dan Frontend).
-
-**Langkah 1: Jalankan Backend Server**  
-Buka terminal di folder `server/` dan jalankan:
-```bash
-node app.js
-```
-*Backend akan berjalan di: http://localhost:3000*
-
-**Langkah 2: Jalankan Frontend Server**  
-Buka terminal baru di folder `client/` dan jalankan:
-```bash
-npm run dev
-```
-*Frontend akan berjalan dan bisa diakses via browser lokal (biasanya di http://localhost:5173)*
+1. Masuk ke folder `client/`: `cd client`
+2. Instal dependensi: `npm install`
+3. Jalankan development server: `npm run dev`
 
 ---
 
-## 📝 Contoh Prompt / Frasa yang Didukung
-
-Cukup ketikkan secara natural seperti Anda sedang berbicara/chatting:
-
-**Mencatat Pengeluaran:**
-- *"Beli bakso 25rb"*
-- *"Parkir motor 2k tadi siang"*
-- *"Belanja bulanan di minimarket habis 550.000"*
-
-**Mengecek Ringkasan:**
-- *"Berapa total pengeluaran saya hari ini?"*
-- *"Tampilkan total pengeluaran selama minggu ini"*
-- *"Hapus pengeluaran terakhir saya"* (jika didukung)
+## 🛡️ Fitur Keamanan & Kualitas
+- **JWT Authentication**: Setiap request dilindungi oleh Bearer token verification.
+- **Data Sanitization**: Backend secara otomatis menghapus password hash dari semua response JSON.
+- **AI Loop Guard**: Mencegah loop berulang pada AI tool-calling untuk menghemat kuota token.
+- **Standardized Response**: Struktur error dan sukses yang konsisten di seluruh API.
 
 ---
 
 ## ⚙️ Struktur Proyek
-
-- `/server/app.js` - Titik masuk (entry point) server backend Express.
-- `/server/routes/` - Pengaturan routing API.
-- `/server/controllers/` - Logika penanganan request/response API.
-- `/server/services/` - Layanan logika bisnis (AI & Database).
-- `/server/models/` - Abstraksi query database (Prisma).
-- `/server/config/` - Konfigurasi environment.
-- `/client/` - Seluruh kode sistem Frontend React.js yang dibangun dengan Vite.
+- `/server/middleware/auth.middleware.js` - Verifikasi JWT.
+- `/server/controllers/` - Logika Auth, Chat, dan Transaksi.
+- `/server/services/aiService.js` - Integrasi OpenAI & Tool Definition.
+- `/client/src/store/UserContext.jsx` - Pengaturan session user di frontend.
+- `/client/src/services/apiInstance.js` - Interceptor Authorization header.

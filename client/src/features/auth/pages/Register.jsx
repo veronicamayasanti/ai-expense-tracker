@@ -19,11 +19,12 @@ const Register = () => {
       if (formData.password.length < 6) {
         throw new Error('Password minimal 6 karakter');
       }
-      await authService.register(formData.name, formData.email, formData.password);
-      login(formData.email);
+      const response = await authService.register(formData.name, formData.email, formData.password);
+      const { user, token } = response.data.data;
+      login(user, token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Gagal registrasi. Coba email lain.');
+      setError(err.response?.data?.message || err.response?.data?.error || err.message || 'Gagal registrasi. Coba email lain.');
     } finally {
       setLoading(false);
     }

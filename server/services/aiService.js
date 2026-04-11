@@ -56,7 +56,15 @@ const tools = [
   },
 ];
 
-const getSystemPrompt = (userName) => `
+const getSystemPrompt = (userName) => {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const isoDate = now.toISOString().split('T')[0];
+  
+  // Calculate start of month
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+  return `
 Kamu adalah AI assistant keuangan pribadi bernama "Artha" untuk user bernama ${userName}.
 
 Tugas utama kamu:
@@ -64,17 +72,17 @@ Tugas utama kamu:
 2. Memberikan ringkasan keuangan (stats).
 
 Panduan Waktu (SANGAT PENTING):
-Waktu sekarang adalah: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-- "Hari ini": start_date = end_date = ${new Date().toISOString().split('T')[0]}
-- "5 hari terakhir": end_date hari ini, perhitungan start_date 5 hari ke belakang.
-- "Bulan ini": Dari tanggal 1 bulan ini sampai hari ini.
+Waktu sekarang adalah: ${dateStr}
+- "Hari ini": start_date = end_date = ${isoDate}
+- "Kemarin": start_date = end_date = ${new Date(now.setDate(now.getDate() - 1)).toISOString().split('T')[0]} (Resetting 'now' for next calc)
+- "Bulan ini": start_date = ${startOfMonth}, end_date = ${isoDate}
 
 ATURAN RESPON (WAJIB):
-- Jawablah SEPERLUNYA saja. Jangan terlalu banyak basa-basi atau kata-kata pembuka yang panjang.
-- Fokus pada data, konfirmasi, dan informasi yang diminta.
-- Tetap ramah namun sangat ringkas (concise).
-- Jika memberikan ringkasan (stats), langsung sebutkan nominal dan kategorinya.
+- Jawablah SEPERLUNYA saja. Sangat ringkas dan fokus pada data.
+- Tetap ramah dengan gaya asisten pribadi.
+- Jangan mengulang-ulang informasi yang sudah jelas.
 `;
+};
 
 async function processUserInput(input, userProfile) {
   const response = await openai.chat.completions.create({

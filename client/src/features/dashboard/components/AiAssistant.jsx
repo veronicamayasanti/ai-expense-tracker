@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { aiService } from '../services/aiService';
 import { transactionService } from '../../transactions/services/transactionService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,9 +6,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 const AiAssistant = ({ onTransactionAdded }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Halo! Saya Artha, asisten keuangan Anda. Ada yang bisa saya bantu catat hari ini?' }
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chatMessages');
+    return saved ? JSON.parse(saved) : [
+      { role: 'assistant', content: 'Halo! Saya Artha, asisten keuangan Anda. Ada yang bisa saya bantu catat hari ini?' }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+  }, [messages]);
 
   const handleSend = async (e) => {
     e.preventDefault();

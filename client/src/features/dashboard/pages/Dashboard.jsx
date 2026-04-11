@@ -21,7 +21,7 @@ const Dashboard = () => {
       ]);
       
       setStats(statsRes.data.data);
-      setHistory(historyRes.data.data);
+      setHistory(historyRes.data.data.transactions || []);
     } catch (err) {
       console.error('Fetch Error:', err);
     } finally {
@@ -57,13 +57,13 @@ const Dashboard = () => {
             <div className="relative z-10 mt-8 md:mt-10 flex gap-4 md:gap-8">
               <div className="flex flex-col">
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Total Input</span>
-                <span className="text-emerald-600 font-black flex items-center text-base md:text-lg leading-none">
-                  +12.4% <span className="material-icons text-sm md:text-[18px] ml-1 align-middle leading-none">trending_up</span>
+                <span className="text-slate-400 font-bold flex items-center text-base md:text-lg leading-none">
+                  Live View <span className="material-icons text-sm md:text-[18px] ml-1 align-middle leading-none">analytics</span>
                 </span>
               </div>
               <div className="flex flex-col border-l border-primary/10 pl-4 md:pl-8">
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Credit Score</span>
-                <span className="text-primary font-black text-base md:text-lg leading-none pt-1">782</span>
+                <span className="text-primary font-black text-base md:text-lg leading-none pt-1">Active</span>
               </div>
             </div>
             <span className="material-icons absolute -bottom-8 -right-8 md:-bottom-12 md:-right-12 text-[150px] md:text-[200px] text-primary/5 rotate-12 pointer-events-none select-none">account_balance</span>
@@ -122,7 +122,7 @@ const Dashboard = () => {
                         <p className={`font-black text-base md:text-lg leading-none mb-1 md:mb-1.5 ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
                           {tx.type === 'INCOME' ? '+' : '-'}Rp {tx.amount.toLocaleString()}
                         </p>
-                        <p className="hidden md:block text-[9px] uppercase font-bold tracking-widest text-slate-400 leading-none">Processed</p>
+                        <p className="hidden md:block text-[9px] uppercase font-bold tracking-widest text-slate-400 leading-none">Status: Success</p>
                       </div>
                     </div>
                   ))

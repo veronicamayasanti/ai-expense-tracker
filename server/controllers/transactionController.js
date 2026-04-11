@@ -47,8 +47,9 @@ async function getHistory(req, res) {
   try {
     const userId = req.user.id;
     const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
     
-    const history = await transactionService.getHistory(userId, limit);
+    const history = await transactionService.getHistory(userId, limit, page);
     
     res.json({
       status: 'success',

@@ -29,11 +29,19 @@ async function getAggregateTransactions(userId, startDate, endDate, type = 'EXPE
   return result._sum.amount || 0;
 }
 
-async function getRecentTransactions(userId, limit = 10) {
+async function getRecentTransactions(userId, limit = 10, page = 1) {
+  const skip = (page - 1) * limit;
   return await prisma.transaction.findMany({
     where: { userId: parseInt(userId) },
     orderBy: { createdAt: 'desc' },
+    skip: skip,
     take: limit,
+  });
+}
+
+async function countTransactions(userId) {
+  return await prisma.transaction.count({
+    where: { userId: parseInt(userId) },
   });
 }
 
@@ -41,4 +49,5 @@ module.exports = {
   createTransactionRecord,
   getAggregateTransactions,
   getRecentTransactions,
+  countTransactions,
 };
