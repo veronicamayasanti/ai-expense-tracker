@@ -1,11 +1,17 @@
-const { createTransactionRecord, getAggregateTransactions, getRecentTransactions } = require('../models/transaction.model');
+const { createTransactionRecord, getAggregateTransactions, getRecentTransactions, getUserBalance } = require('../models/transaction.model');
 
 async function createTransaction(userId, data) {
   // Add validation logic here if needed
   if (!data.amount || data.amount <= 0) {
     throw new Error('Amount must be greater than 0');
   }
-  return await createTransactionRecord(userId, data);
+  const transaction = await createTransactionRecord(userId, data);
+  const balance = await getUserBalance(userId);
+  
+  return {
+    ...transaction,
+    currentBalance: balance
+  };
 }
 
 async function getTotalAmount(userId, startDate, endDate, type = 'EXPENSE') {
@@ -44,4 +50,5 @@ module.exports = {
   getTotalAmount,
   getStats,
   getHistory,
+  getUserBalance,
 };

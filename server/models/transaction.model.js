@@ -29,6 +29,23 @@ async function getAggregateTransactions(userId, startDate, endDate, type = 'EXPE
   return result._sum.amount || 0;
 }
 
+async function getUserBalance(userId) {
+  const aggregates = await prisma.transaction.groupBy({
+    by: ['type'],
+    where: {
+      userId: parseInt(userId),
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const income = aggregates.find((a) => a.type === 'INCOME')?._sum.amount || 0;
+  const expense = aggregates.find((a) => a.type === 'EXPENSE')?._sum.amount || 0;
+
+  return income - expense;
+}
+
 async function getRecentTransactions(userId, limit = 10, page = 1) {
   const skip = (page - 1) * limit;
   return await prisma.transaction.findMany({
@@ -50,4 +67,5 @@ module.exports = {
   getAggregateTransactions,
   getRecentTransactions,
   countTransactions,
+  getUserBalance,
 };

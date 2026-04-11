@@ -6,6 +6,21 @@ async function findUserByEmail(email) {
   });
 }
 
+async function findUserByWhatsapp(whatsapp) {
+  // Normalize number: remove 'whatsapp:' and '+' prefix
+  const cleanNumber = whatsapp.replace('whatsapp:', '').replace('+', '');
+  
+  return await prisma.user.findFirst({
+    where: { 
+      OR: [
+        { whatsapp: cleanNumber },
+        { whatsapp: '+' + cleanNumber },
+        { whatsapp: 'whatsapp:+' + cleanNumber }
+      ]
+    },
+  });
+}
+
 async function createUser(data) {
   console.log('DEBUG: Creating user with data:', { ...data, password: '[REDACTED]' });
   return await prisma.user.create({
@@ -39,6 +54,7 @@ async function getUserProfile(id) {
 
 module.exports = {
   findUserByEmail,
+  findUserByWhatsapp,
   createUser,
   updateUser,
   getUserProfile,

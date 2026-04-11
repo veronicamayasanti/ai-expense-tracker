@@ -60,9 +60,41 @@ Aplikasi pencatat pengeluaran pribadi modern yang didukung oleh AI untuk menerje
 
 ---
 
+- `/server/routes/twilioRoutes.js` - Endpoint webhook Twilio.
+- `/server/controllers/twilioController.js` - Handler pesan WhatsApp masuk.
+
+---
+
+## 📱 Integrasi WhatsApp (Twilio)
+
+Artha kini bisa diakses langsung melalui WhatsApp. Anda bisa mencatat transaksi hanya dengan mengirim pesan teks biasa.
+
+### Fitur WhatsApp:
+- **Konfirmasi Transaksi**: Artha akan mengonfirmasi detail transaksi yang dicatat.
+- **Informasi Saldo Otomatis**: Setiap selesai mencatat, Artha akan memberi tahu total saldo terbaru Anda.
+- **Multi-User**: Artha mengenali akun Anda berdasarkan nomor telepon pengirim.
+
+### Cara Setup:
+1. Hubungkan server lokal Anda ke internet menggunakan **ngrok**: `ngrok http 3000`
+2. Konfigurasi **Webhook** di Twilio Console dengan URL: `https://your-ngrok-url.app/api/whatsapp/twilio`
+3. Tambahkan nomor WhatsApp Anda di halaman **Account Settings** pada dashboard web Artha.
+4. Simpan kredensial Twilio di `.env`:
+   ```env
+   TWILIO_ACCOUNT_SID=AC...
+   TWILIO_AUTH_TOKEN=your_token
+   TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+   ```
+
+### Demo Chat:
+<p align="center">
+  <img src="docs/whatsapp_demo.jpg" width="300" alt="WhatsApp Demo">
+</p>
+
+---
+
 ## ⚙️ Struktur Proyek
+- `/server/services/chatService.js` - Core AI processing logic (Shared).
 - `/server/middleware/auth.middleware.js` - Verifikasi JWT.
-- `/server/controllers/` - Logika Auth, Chat, dan Transaksi.
-- `/server/services/aiService.js` - Integrasi OpenAI & Tool Definition.
-- `/client/src/store/UserContext.jsx` - Pengaturan session user di frontend.
+- `/server/controllers/` - Logika Auth, Chat, Transaksi, dan Twilio.
+- `/client/src/store/UserContext.jsx` - Pengaturan session user & persistent profile.
 - `/client/src/services/apiInstance.js` - Interceptor Authorization header.

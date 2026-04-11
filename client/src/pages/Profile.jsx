@@ -6,7 +6,7 @@ import { useUser } from '../store/UserContext';
 import { motion } from 'framer-motion';
 
 const Profile = () => {
-  const { user, setUser } = useUser();
+  const { user, updateUser } = useUser();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,7 +33,7 @@ const Profile = () => {
     setMessage('');
     try {
       const res = await userService.updateProfile(formData);
-      setUser(prev => ({ ...prev, ...res.data.data }));
+      updateUser(res.data.data);
       setMessage('Profil berhasil diperbarui');
     } catch (err) {
       console.error(err);

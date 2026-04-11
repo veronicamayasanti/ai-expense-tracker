@@ -56,16 +56,20 @@ const tools = [
   },
 ];
 
-const getSystemPrompt = (userName) => {
+const getSystemPrompt = (userName, balance = 0) => {
   const now = new Date();
   const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const isoDate = now.toISOString().split('T')[0];
   
+  // Format balance to Rupiah for context
+  const formattedBalance = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(balance);
+
   // Calculate start of month
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
   return `
 Kamu adalah AI assistant keuangan pribadi bernama "Artha" untuk user bernama ${userName}.
+Saldo total user saat ini: ${formattedBalance}
 
 Tugas utama kamu:
 1. Mencatat transaksi (pemasukan/pengeluaran).
@@ -81,6 +85,8 @@ ATURAN RESPON (WAJIB):
 - Jawablah SEPERLUNYA saja. Sangat ringkas dan fokus pada data.
 - Tetap ramah dengan gaya asisten pribadi.
 - Jangan mengulang-ulang informasi yang sudah jelas.
+- WAJIB: Setiap kali selesai mencatat transaksi (pemasukan atau pengeluaran), informasikan total saldo terbaru user.
+- Gunakan format yang enak dibaca untuk saldo, contoh: "Total saldo Kakak sekarang jadi Rp1.250.000".
 `;
 };
 

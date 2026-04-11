@@ -28,6 +28,12 @@ export const UserProvider = ({ children }) => {
     setUser(userData);
   };
 
+  const updateUser = (newUserData) => {
+    const updatedUser = { ...user, ...newUserData };
+    localStorage.setItem('userData', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('userData');
     localStorage.removeItem('authToken');
@@ -36,7 +42,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, login, logout, loading }}>
+    <UserContext.Provider value={{ user, setUser, updateUser, login, logout, loading }}>
       {children}
     </UserContext.Provider>
   );
