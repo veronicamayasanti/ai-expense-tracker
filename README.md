@@ -87,7 +87,7 @@ Artha kini bisa diakses langsung melalui WhatsApp. Anda bisa mencatat transaksi 
 
 ### Demo Chat:
 <p align="center">
-  <img src="docs/whatsapp_demo.jpg" width="300" alt="WhatsApp Demo">
+  <img src="docs/whatsapp_demo.jpeg" width="300" alt="WhatsApp Demo">
 </p>
 
 ---
