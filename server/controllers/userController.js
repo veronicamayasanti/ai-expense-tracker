@@ -1,11 +1,5 @@
 const { getUserProfile, updateUser } = require('../models/user.model');
-
-// Helper to sanitize user object
-const sanitizeUser = (user) => {
-  if (!user) return null;
-  const { password, ...userSansPassword } = user;
-  return userSansPassword;
-};
+const { sanitizeUser } = require('../utils/sanitize');
 
 async function getProfile(req, res) {
   try {

@@ -19,10 +19,9 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100 p-8 gap-y-12 z-40">
-      <div className="flex items-center gap-3">
-        <img src="/arthaku.png" alt="ArthaKu Symbol" className="w-12 h-12 object-contain" />
-        <img src="/tulisan arthaku.png" alt="ArthaKu" className="h-10 object-contain" />
+    <aside className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-100 pt-4 px-8 pb-8 gap-y-6 z-40">
+      <div className="mb-0">
+        <img src="/arthaku logo.png" alt="ArthaKu Logo" className="w-full h-auto object-contain" />
       </div>
 
       <nav className="flex flex-col gap-y-3 flex-grow">
@@ -38,7 +37,7 @@ const Sidebar = () => {
               }`
             }
           >
-            <span className="material-icons text-[22px] leading-none shrink-0">
+            <span className="material-symbols-outlined text-[22px] leading-none shrink-0">
               {item.icon}
             </span>
             <span className="leading-none pt-0.5">{item.name}</span>
@@ -55,8 +54,8 @@ const Sidebar = () => {
               className="w-full h-full object-cover" 
             />
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-black text-slate-900 truncate tracking-tight">
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-black text-slate-900 truncate tracking-tight block">
               {user?.name || 'Guest'}
             </span>
           </div>
@@ -65,7 +64,7 @@ const Sidebar = () => {
           onClick={handleLogout}
           className="flex items-center gap-4 px-5 py-4 text-slate-400 hover:text-rose-600 transition-all w-full text-sm font-bold group"
         >
-          <span className="material-icons text-[22px] group-hover:rotate-12 transition-transform">logout</span>
+          <span className="material-symbols-outlined text-[22px] group-hover:rotate-12 transition-transform">logout</span>
           <span className="leading-none pt-0.5">Logout</span>
         </button>
       </div>

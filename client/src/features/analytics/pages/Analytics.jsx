@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../../layouts/MainLayout';
 import TopBar from '../../../layouts/components/TopBar';
 import { transactionService } from '../../transactions/services/transactionService';
+import { formatCurrency } from '../../../utils/formatters';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const Analytics = () => {
@@ -22,7 +23,8 @@ const Analytics = () => {
         const chartMap = {};
         const categoryMap = {};
         
-        historyRes.data.data.forEach(tx => {
+        const transactions = historyRes.data.data.transactions || [];
+        transactions.forEach(tx => {
           const date = new Date(tx.createdAt).toLocaleDateString(undefined, { month: 'short' });
           if (!chartMap[date]) chartMap[date] = { name: date, income: 0, expense: 0 };
           if (tx.type === 'INCOME') chartMap[date].income += tx.amount;
@@ -43,6 +45,11 @@ const Analytics = () => {
 
   const COLORS = ['#004B44', '#6b3a26', '#b1eee4', '#edeeef'];
 
+  // Calculate real savings rate
+  const savingsRate = stats.totalIncome > 0 
+    ? ((stats.balance / stats.totalIncome) * 100).toFixed(1)
+    : 0;
+
   return (
     <Layout>
       <TopBar title="Financial Reports" />
@@ -52,22 +59,26 @@ const Analytics = () => {
           <div className="md:col-span-2 bg-white rounded-[2rem] p-6 md:p-8 flex flex-col justify-between border border-slate-100 shadow-sm relative overflow-hidden">
             <div className="relative z-10">
               <p className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-extrabold mb-2">Total Net Worth</p>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-primary truncate">Rp {stats.balance.toLocaleString()}</h2>
-              <div className="mt-4 flex items-center gap-2 text-primary font-black">
-                <span className="material-icons text-sm">trending_up</span>
-                <span className="text-xs md:text-sm uppercase tracking-widest">+12.4% vs last period</span>
+              <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-primary truncate">{formatCurrency(stats.balance)}</h2>
+              <div className="flex items-center gap-2 mt-2">
+                <span className={`material-symbols-outlined text-sm ${stats.balance >= 0 ? 'text-primary' : 'text-rose-600'}`}>
+                  {stats.balance >= 0 ? 'trending_up' : 'trending_down'}
+                </span>
+                <span className={`text-xs md:text-sm uppercase tracking-widest ${stats.balance >= 0 ? 'text-primary' : 'text-rose-600'}`}>
+                  {savingsRate}% savings rate
+                </span>
               </div>
             </div>
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl shrink-0"></div>
           </div>
           <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border-l-[6px] border-primary shadow-sm border-y border-r border-slate-100">
             <p className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-extrabold mb-1 md:mb-2">Income</p>
-            <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">Rp {stats.totalIncome.toLocaleString()}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">{formatCurrency(stats.totalIncome)}</h3>
             <p className="text-[10px] text-slate-500 font-bold mt-1 uppercase tracking-widest opacity-60">Verified Deposits</p>
           </div>
           <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border-l-[6px] border-rose-800 shadow-sm border-y border-r border-slate-100">
             <p className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-extrabold mb-1 md:mb-2 italic">Expenses</p>
-            <h3 className="text-2xl md:text-3xl font-black text-rose-900 tracking-tight">Rp {stats.totalExpense.toLocaleString()}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-rose-900 tracking-tight">{formatCurrency(stats.totalExpense)}</h3>
             <p className="text-[10px] text-slate-500 font-bold mt-1 uppercase tracking-widest opacity-60">Outbound Assets</p>
           </div>
         </section>
@@ -112,7 +123,7 @@ const Analytics = () => {
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Total</span>
-                <span className="text-xl font-black text-primary tracking-tight">Rp {stats.totalExpense.toLocaleString()}</span>
+                <span className="text-xl font-black text-primary tracking-tight">{formatCurrency(stats.totalExpense)}</span>
               </div>
             </div>
             
@@ -123,7 +134,7 @@ const Analytics = () => {
                     <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }}></span>
                     <span className="truncate max-w-[120px]">{d.name}</span>
                   </div>
-                  <span className="text-primary font-black">Rp {d.value.toLocaleString()}</span>
+                  <span className="text-primary font-black">{formatCurrency(d.value)}</span>
                 </div>
               ))}
             </div>

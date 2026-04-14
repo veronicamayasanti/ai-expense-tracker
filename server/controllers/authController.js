@@ -1,13 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/env');
 const { findUserByEmail, createUser } = require('../models/user.model');
+const { sanitizeUser } = require('../utils/sanitize');
 const bcrypt = require('bcryptjs');
-
-// Helper to sanitize user object
-const sanitizeUser = (user) => {
-  const { password, ...userSansPassword } = user;
-  return userSansPassword;
-};
 
 // Helper to generate JWT
 const generateToken = (user) => {

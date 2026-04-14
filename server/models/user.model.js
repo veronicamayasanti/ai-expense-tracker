@@ -22,7 +22,6 @@ async function findUserByWhatsapp(whatsapp) {
 }
 
 async function createUser(data) {
-  console.log('DEBUG: Creating user with data:', { ...data, password: '[REDACTED]' });
   return await prisma.user.create({
     data: {
       name: data.name,

@@ -14,21 +14,22 @@ const TopBar = ({ title }) => {
         </div>
         
         <div className="flex items-center gap-3 md:gap-6">
-          <div className="hidden sm:flex bg-slate-50 rounded-full px-4 py-2 items-center gap-2 border border-slate-100">
-            <span className="material-icons text-slate-400 text-[18px]">search</span>
+          <div className="hidden sm:flex bg-slate-50 rounded-full px-4 py-2 items-center gap-2 border border-slate-100 opacity-50 cursor-not-allowed" title="Coming Soon">
+            <span className="material-symbols-outlined text-slate-400 text-[18px]">search</span>
             <input 
               type="text" 
-              className="bg-transparent border-none focus:ring-0 text-sm w-32 md:w-48 placeholder-slate-400" 
-              placeholder="Search..."
+              disabled
+              className="bg-transparent border-none focus:ring-0 text-sm w-32 md:w-48 placeholder-slate-400 cursor-not-allowed" 
+              placeholder="Search (coming soon)"
             />
           </div>
           
           <button className="md:hidden w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-            <span className="material-icons">search</span>
+            <span className="material-symbols-outlined">search</span>
           </button>
 
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 md:hidden">
-            <span className="material-icons text-xl">notifications</span>
+            <span className="material-symbols-outlined text-xl">notifications</span>
           </div>
         </div>
       </div>

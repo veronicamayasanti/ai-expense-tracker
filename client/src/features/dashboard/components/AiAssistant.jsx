@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { aiService } from '../services/aiService';
 import { transactionService } from '../../transactions/services/transactionService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { parseInformalNumber } from '../../../utils/formatters';
 
 const AiAssistant = ({ onTransactionAdded }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem('chatMessages');
     return saved ? JSON.parse(saved) : [
@@ -17,11 +19,16 @@ const AiAssistant = ({ onTransactionAdded }) => {
     localStorage.setItem('chatMessages', JSON.stringify(messages));
   }, [messages]);
 
+  // Auto-scroll to bottom when messages or loading changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    const userMessage = input;
+    const userMessage = parseInformalNumber(input);
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
@@ -47,7 +54,7 @@ const AiAssistant = ({ onTransactionAdded }) => {
       <div className="p-6 border-b border-slate-50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-            <span className="material-icons">auto_awesome</span>
+            <span className="material-symbols-outlined">auto_awesome</span>
           </div>
           <div>
             <h3 className="font-bold text-slate-900">Artha Assistant</h3>
@@ -82,6 +89,7 @@ const AiAssistant = ({ onTransactionAdded }) => {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSend} className="p-4 bg-slate-50 rounded-b-[2rem] border-t border-slate-100">
@@ -100,7 +108,7 @@ const AiAssistant = ({ onTransactionAdded }) => {
                 disabled={!input.trim() || loading}
                 className="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center disabled:opacity-30 shadow-md shadow-primary/20 active:scale-95 transition-all"
               >
-                <span className="material-icons text-sm">send</span>
+                <span className="material-symbols-outlined text-sm">send</span>
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-const { PORT } = require('./config/env');
+const { PORT, ALLOWED_ORIGINS } = require('./config/env');
 const express = require('express');
 const cors = require('cors');
 const apiRoutes = require('./routes/index');
@@ -6,7 +6,10 @@ const apiRoutes = require('./routes/index');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ALLOWED_ORIGINS,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

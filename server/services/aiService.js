@@ -1,5 +1,7 @@
 const { OPENAI_API_KEY } = require('../config/env');
 const OpenAI = require('openai');
+
+// Shared OpenAI client instance — reused by chatService
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 const tools = [
@@ -67,6 +69,9 @@ const getSystemPrompt = (userName, balance = 0) => {
   // Calculate start of month
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
+  // Calculate yesterday WITHOUT mutating 'now'
+  const yesterday = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
+
   return `
 Kamu adalah AI assistant keuangan pribadi bernama "Artha" untuk user bernama ${userName}.
 Saldo total user saat ini: ${formattedBalance}
@@ -78,7 +83,7 @@ Tugas utama kamu:
 Panduan Waktu (SANGAT PENTING):
 Waktu sekarang adalah: ${dateStr}
 - "Hari ini": start_date = end_date = ${isoDate}
-- "Kemarin": start_date = end_date = ${new Date(now.setDate(now.getDate() - 1)).toISOString().split('T')[0]} (Resetting 'now' for next calc)
+- "Kemarin": start_date = end_date = ${yesterday}
 - "Bulan ini": start_date = ${startOfMonth}, end_date = ${isoDate}
 
 BATASAN RUANG LINGKUP (SANGAT KETAT):
@@ -95,22 +100,8 @@ ATURAN RESPON (WAJIB):
 `;
 };
 
-async function processUserInput(input, userProfile) {
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: getSystemPrompt(userProfile.name) },
-      { role: 'user', content: input },
-    ],
-    tools: tools,
-    tool_choice: 'auto',
-  });
-
-  return response.choices[0].message;
-}
-
 module.exports = {
-  processUserInput,
+  openai,
   getSystemPrompt,
   tools,
 };

@@ -1,4 +1,4 @@
-const { createTransactionRecord, getAggregateTransactions, getRecentTransactions, getUserBalance } = require('../models/transaction.model');
+const { createTransactionRecord, getAggregateTransactions, getRecentTransactions, getUserBalance, countTransactions } = require('../models/transaction.model');
 
 async function createTransaction(userId, data) {
   // Add validation logic here if needed
@@ -34,7 +34,7 @@ async function getStats(userId, startDate, endDate) {
 async function getHistory(userId, limit, page) {
   const [transactions, totalCount] = await Promise.all([
     getRecentTransactions(userId, limit, page),
-    require('../models/transaction.model').countTransactions(userId)
+    countTransactions(userId)
   ]);
   
   return {

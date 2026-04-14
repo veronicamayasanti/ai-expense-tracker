@@ -1,9 +1,5 @@
-const { getSystemPrompt, tools } = require('./aiService');
+const { getSystemPrompt, tools, openai } = require('./aiService');
 const transactionService = require('./transactionService');
-const { OPENAI_API_KEY } = require('../config/env');
-const OpenAI = require('openai');
-
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 /**
  * Core chat processing logic
@@ -68,10 +64,12 @@ async function processChatMessage(input, user) {
         });
       }
 
-      // Second pass: force the AI to read results
+      // Follow-up pass: let AI read results and potentially call more tools
       response = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: messages,
+        tools: tools,
+        tool_choice: 'auto',
       });
       aiMessage = response.choices[0].message;
     }

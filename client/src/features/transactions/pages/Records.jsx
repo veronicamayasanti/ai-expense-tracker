@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Layout from '../../../layouts/MainLayout';
 import TopBar from '../../../layouts/components/TopBar';
 import { transactionService } from '../services/transactionService';
+import { formatCurrency } from '../../../utils/formatters';
 
 const Records = () => {
   const [history, setHistory] = useState([]);
@@ -35,6 +36,59 @@ const Records = () => {
     }
   };
 
+  // Sliding window pagination: show max 5 page buttons around current page
+  const getPageNumbers = useCallback(() => {
+    const maxVisible = 5;
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = start + maxVisible - 1;
+    
+    if (end > totalPages) {
+      end = totalPages;
+      start = end - maxVisible + 1;
+    }
+    
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [currentPage, totalPages]);
+
+  // CSV Download
+  const handleDownloadCSV = async () => {
+    try {
+      const res = await transactionService.getHistory(1000, 1);
+      const transactions = res.data.data.transactions || [];
+      
+      if (transactions.length === 0) {
+        alert('Tidak ada data transaksi untuk diunduh.');
+        return;
+      }
+
+      const headers = ['Date', 'Time', 'Category', 'Description', 'Type', 'Amount'];
+      const rows = transactions.map(tx => [
+        new Date(tx.createdAt).toLocaleDateString('id-ID'),
+        new Date(tx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        tx.category || '-',
+        `"${(tx.description || '').replace(/"/g, '""')}"`,
+        tx.type,
+        tx.type === 'INCOME' ? tx.amount : -tx.amount,
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `arthaku_transactions_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('CSV Download Error:', err);
+      alert('Gagal mengunduh CSV.');
+    }
+  };
+
   const startIndex = (currentPage - 1) * limit + 1;
   const endIndex = Math.min(currentPage * limit, totalCount);
 
@@ -51,9 +105,9 @@ const Records = () => {
           
           <div className="bg-white p-1 md:p-2 rounded-xl md:rounded-2xl shadow-sm border border-slate-50 flex items-center gap-2">
             <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-50 rounded-lg md:rounded-xl border border-slate-100">
-              <span className="material-icons text-slate-400 text-sm md:text-lg">calendar_today</span>
+              <span className="material-symbols-outlined text-slate-400 text-sm md:text-lg">calendar_today</span>
               <span className="text-[10px] md:text-xs font-black text-slate-700 uppercase tracking-widest leading-none pt-0.5">Filter Records</span>
-              <span className="material-icons text-slate-400 text-sm cursor-pointer ml-1">expand_more</span>
+              <span className="material-symbols-outlined text-slate-400 text-sm cursor-pointer ml-1">expand_more</span>
             </div>
           </div>
         </div>
@@ -105,7 +159,7 @@ const Records = () => {
                     </td>
                     <td className="px-8 py-6">
                       <div className={`flex items-center gap-2 ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        <span className="material-icons text-sm font-black">
+                        <span className="material-symbols-outlined text-sm font-black">
                           {tx.type === 'INCOME' ? 'trending_up' : 'trending_down'}
                         </span>
                         <span className="text-[10px] font-black uppercase tracking-widest">{tx.type}</span>
@@ -113,7 +167,7 @@ const Records = () => {
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className={`text-base font-black tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {tx.type === 'INCOME' ? '+' : '-'}Rp {tx.amount.toLocaleString()}
+                        {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
                       </div>
                     </td>
                   </tr>
@@ -135,35 +189,65 @@ const Records = () => {
                   disabled={currentPage === 1}
                   className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary transition-all disabled:opacity-30"
                 >
-                  <span className="material-icons text-sm">chevron_left</span>
+                  <span className="material-symbols-outlined text-sm">chevron_left</span>
                 </button>
                 
-                {totalPages > 0 && [...Array(Math.min(10, totalPages))].map((_, i) => (
+                {/* First page + ellipsis */}
+                {getPageNumbers()[0] > 1 && (
+                  <>
+                    <button
+                      onClick={() => handlePageChange(1)}
+                      className="w-8 h-8 rounded-lg text-xs font-black text-slate-400 hover:bg-white hover:text-primary transition-all"
+                    >1</button>
+                    {getPageNumbers()[0] > 2 && (
+                      <span className="w-8 h-8 flex items-center justify-center text-slate-300 text-xs">…</span>
+                    )}
+                  </>
+                )}
+
+                {getPageNumbers().map(pageNum => (
                   <button
-                    key={i + 1}
-                    onClick={() => handlePageChange(i + 1)}
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
                     className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${
-                      currentPage === i + 1 
+                      currentPage === pageNum 
                         ? 'bg-primary text-white shadow-lg shadow-primary/20' 
                         : 'text-slate-400 hover:bg-white hover:text-primary'
                     }`}
                   >
-                    {i + 1}
+                    {pageNum}
                   </button>
                 ))}
+
+                {/* Last page + ellipsis */}
+                {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                  <>
+                    {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                      <span className="w-8 h-8 flex items-center justify-center text-slate-300 text-xs">…</span>
+                    )}
+                    <button
+                      onClick={() => handlePageChange(totalPages)}
+                      className="w-8 h-8 rounded-lg text-xs font-black text-slate-400 hover:bg-white hover:text-primary transition-all"
+                    >{totalPages}</button>
+                  </>
+                )}
 
                 <button 
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary transition-all disabled:opacity-30"
                 >
-                  <span className="material-icons text-sm">chevron_right</span>
+                  <span className="material-symbols-outlined text-sm">chevron_right</span>
                 </button>
               </div>
 
               <div className="h-4 w-[1px] bg-slate-200 mx-2 hidden md:block"></div>
               
-              <button className="text-[10px] font-black text-primary hover:text-primary/80 uppercase tracking-widest px-4 py-2 hover:bg-primary/5 transition-all rounded-xl">
+              <button 
+                onClick={handleDownloadCSV}
+                className="text-[10px] font-black text-primary hover:text-primary/80 uppercase tracking-widest px-4 py-2 hover:bg-primary/5 transition-all rounded-xl flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">download</span>
                 Download CSV
               </button>
             </div>
@@ -175,3 +259,4 @@ const Records = () => {
 };
 
 export default Records;
+

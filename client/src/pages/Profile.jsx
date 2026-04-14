@@ -63,9 +63,6 @@ const Profile = () => {
                     alt="Profile" 
                     className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-4 border-slate-50 shadow-sm"
                   />
-                  <button className="absolute -bottom-2 -right-2 bg-primary text-white p-2 rounded-lg shadow-lg hover:scale-110 transition-transform">
-                    <span className="material-icons text-sm">photo_camera</span>
-                  </button>
                 </div>
                 <div className="pt-2">
                   <h2 className="text-lg md:text-xl font-bold text-slate-900">Identity Details</h2>
@@ -99,7 +96,7 @@ const Profile = () => {
                   <div className="flex items-center justify-between mb-6 md:mb-8">
                     <div className="flex items-center gap-3 md:gap-4">
                       <div className="p-3 bg-white rounded-xl md:rounded-2xl text-emerald-600 shadow-sm">
-                        <span className="material-icons text-xl md:text-2xl">chat</span>
+                        <span className="material-symbols-outlined text-xl md:text-2xl">chat</span>
                       </div>
                       <div>
                         <h2 className="text-lg md:text-xl font-bold text-slate-900 leading-none">WhatsApp</h2>
@@ -153,7 +150,7 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="pt-4 border-t border-white/5 flex items-center gap-3">
-                    <span className="material-icons text-emerald-400 text-sm">verified_user</span>
+                    <span className="material-symbols-outlined text-emerald-400 text-sm">verified_user</span>
                     <span className="text-[9px] font-black uppercase tracking-widest italic opacity-70">SSL Protocol Active</span>
                   </div>
                 </div>
