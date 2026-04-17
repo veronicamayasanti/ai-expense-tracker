@@ -1,10 +1,15 @@
-const { createTransactionRecord, getAggregateTransactions, getRecentTransactions, getUserBalance, countTransactions } = require('../models/transaction.model');
+const { createTransactionRecord, getAggregateTransactions, getRecentTransactions, getUserBalance, countTransactions, updateTransactionRecord, deleteTransactionRecord } = require('../models/transaction.model');
 
 async function createTransaction(userId, data) {
-  // Add validation logic here if needed
-  if (!data.amount || data.amount <= 0) {
-    throw new Error('Amount must be greater than 0');
+  // Add validation logic
+  if (!data.amount || isNaN(parseInt(data.amount)) || parseInt(data.amount) <= 0) {
+    throw new Error('Amount must be a positive number');
   }
+  
+  if (!data.description || data.description.trim() === '') {
+    throw new Error('Description is required');
+  }
+
   const transaction = await createTransactionRecord(userId, data);
   const balance = await getUserBalance(userId);
   
@@ -45,10 +50,23 @@ async function getHistory(userId, limit, page) {
   };
 }
 
+async function updateTransaction(transactionId, userId, data) {
+  const transaction = await updateTransactionRecord(transactionId, userId, data);
+  const balance = await getUserBalance(userId);
+  return { ...transaction, currentBalance: balance };
+}
+
+async function deleteTransaction(transactionId, userId) {
+  await deleteTransactionRecord(transactionId, userId);
+  return await getUserBalance(userId);
+}
+
 module.exports = {
   createTransaction,
   getTotalAmount,
   getStats,
   getHistory,
   getUserBalance,
+  updateTransaction,
+  deleteTransaction,
 };

@@ -1,13 +1,17 @@
 const prisma = require('../database/db');
 
 async function createTransactionRecord(userId, data) {
+  // Normalize type and ensure it's one of the valid enum values
+  const typeValue = (data.type || 'EXPENSE').toUpperCase();
+  const normalizedType = ['INCOME', 'EXPENSE'].includes(typeValue) ? typeValue : 'EXPENSE';
+
   return await prisma.transaction.create({
     data: {
       userId: parseInt(userId),
-      amount: parseInt(data.amount),
-      description: data.description,
-      category: data.category || 'Other',
-      type: data.type || 'EXPENSE',
+      amount: Math.abs(parseInt(data.amount)) || 0,
+      description: (data.description || 'No description').trim(),
+      category: (data.category || 'Other').trim(),
+      type: normalizedType,
     },
   });
 }
@@ -62,10 +66,39 @@ async function countTransactions(userId) {
   });
 }
 
+async function updateTransactionRecord(transactionId, userId, data) {
+  const typeValue = data.type ? data.type.toUpperCase() : undefined;
+  const normalizedType = (typeValue && ['INCOME', 'EXPENSE'].includes(typeValue)) ? typeValue : undefined;
+
+  return await prisma.transaction.update({
+    where: {
+      id: parseInt(transactionId),
+      userId: parseInt(userId),
+    },
+    data: {
+      amount: data.amount ? Math.abs(parseInt(data.amount)) : undefined,
+      description: data.description ? data.description.trim() : undefined,
+      category: data.category ? data.category.trim() : undefined,
+      type: normalizedType,
+    },
+  });
+}
+
+async function deleteTransactionRecord(transactionId, userId) {
+  return await prisma.transaction.delete({
+    where: {
+      id: parseInt(transactionId),
+      userId: parseInt(userId),
+    },
+  });
+}
+
 module.exports = {
   createTransactionRecord,
   getAggregateTransactions,
   getRecentTransactions,
   countTransactions,
   getUserBalance,
+  updateTransactionRecord,
+  deleteTransactionRecord,
 };

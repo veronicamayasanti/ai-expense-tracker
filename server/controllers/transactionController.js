@@ -63,8 +63,51 @@ async function getHistory(req, res) {
   }
 }
 
+async function updateTransaction(req, res) {
+  try {
+    const userId = req.user.id;
+    const transactionId = req.params.id;
+    const data = req.body;
+    
+    const transaction = await transactionService.updateTransaction(transactionId, userId, data);
+    
+    res.json({
+      status: 'success',
+      message: 'Transaksi berhasil diperbarui',
+      data: transaction
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+}
+
+async function deleteTransaction(req, res) {
+  try {
+    const userId = req.user.id;
+    const transactionId = req.params.id;
+    
+    const balance = await transactionService.deleteTransaction(transactionId, userId);
+    
+    res.json({
+      status: 'success',
+      message: 'Transaksi berhasil dihapus',
+      data: { balance }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+}
+
 module.exports = {
   addTransaction,
   getStats,
   getHistory,
+  updateTransaction,
+  deleteTransaction,
 };

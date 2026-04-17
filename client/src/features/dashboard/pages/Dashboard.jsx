@@ -6,11 +6,17 @@ import AiAssistant from '../components/AiAssistant';
 import { transactionService } from '../../transactions/services/transactionService';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '../../../utils/formatters';
+import EditTransactionModal from '../../transactions/components/EditTransactionModal';
+import ConfirmDialog from '../../transactions/components/ConfirmDialog';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -28,6 +34,38 @@ const Dashboard = () => {
       console.error('Fetch Error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditClick = (tx) => {
+    setEditingTransaction(tx);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (txId) => {
+    setDeletingTransactionId(txId);
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleSaveEdit = async (id, data) => {
+    try {
+      await transactionService.update(id, data);
+      setIsEditModalOpen(false);
+      fetchData(); // Refresh both stats and history
+    } catch (err) {
+      console.error('Update Error:', err);
+      alert('Gagal memperbarui transaksi');
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await transactionService.delete(deletingTransactionId);
+      setIsConfirmDialogOpen(false);
+      fetchData(); // Refresh both stats and history
+    } catch (err) {
+      console.error('Delete Error:', err);
+      alert('Gagal menghapus transaksi');
     }
   };
 
@@ -119,17 +157,51 @@ const Dashboard = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right flex flex-col items-end shrink-0 ml-2">
-                        <p className={`font-black text-base md:text-lg leading-none mb-1 md:mb-1.5 ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
-                          {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
-                        </p>
-                        <p className="hidden md:block text-[9px] uppercase font-bold tracking-widest text-slate-400 leading-none">Status: Success</p>
+                      
+                      <div className="flex items-center gap-4">
+                        {/* Action Buttons (Desktop Hover) */}
+                        <div className="hidden group-hover:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100">
+                          <button 
+                            onClick={() => handleEditClick(tx)}
+                            className="w-8 h-8 rounded-full hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 hover:text-primary transition-all"
+                          >
+                            <span className="material-symbols-outlined text-base">edit_note</span>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClick(tx.id)}
+                            className="w-8 h-8 rounded-full hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 hover:text-rose-600 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-base">delete_outline</span>
+                          </button>
+                        </div>
+
+                        <div className="text-right flex flex-col items-end shrink-0 ml-2">
+                          <p className={`font-black text-base md:text-lg leading-none mb-1 md:mb-1.5 ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
+                            {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                          </p>
+                          <p className="hidden md:block text-[9px] uppercase font-bold tracking-widest text-slate-400 leading-none">Status: Success</p>
+                        </div>
                       </div>
                     </div>
                   ))
                 )}
               </div>
             </div>
+
+            {/* Modals and Dialogs */}
+            <EditTransactionModal 
+              isOpen={isEditModalOpen} 
+              onClose={() => setIsEditModalOpen(false)} 
+              onSave={handleSaveEdit}
+              transaction={editingTransaction}
+            />
+            <ConfirmDialog 
+              isOpen={isConfirmDialogOpen} 
+              onClose={() => setIsConfirmDialogOpen(false)} 
+              onConfirm={handleConfirmDelete}
+              title="Delete Transaction"
+              message="Are you sure you want to delete this transaction? This will also update your total balance."
+            />
           </div>
 
           <div className="lg:col-span-1 space-y-6 md:space-y-8">

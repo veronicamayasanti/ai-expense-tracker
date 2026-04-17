@@ -3,6 +3,8 @@ import Layout from '../../../layouts/MainLayout';
 import TopBar from '../../../layouts/components/TopBar';
 import { transactionService } from '../services/transactionService';
 import { formatCurrency } from '../../../utils/formatters';
+import EditTransactionModal from '../components/EditTransactionModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const Records = () => {
   const [history, setHistory] = useState([]);
@@ -10,6 +12,10 @@ const Records = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const limit = 10;
 
   useEffect(() => {
@@ -29,6 +35,53 @@ const Records = () => {
     };
     fetchHistory();
   }, [currentPage]);
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await transactionService.getHistory(limit, currentPage);
+      const { transactions = [], totalPages = 1, totalCount = 0 } = res.data.data || {};
+      setHistory(transactions);
+      setTotalPages(totalPages);
+      setTotalCount(totalCount);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditClick = (tx) => {
+    setEditingTransaction(tx);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (txId) => {
+    setDeletingTransactionId(txId);
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleSaveEdit = async (id, data) => {
+    try {
+      await transactionService.update(id, data);
+      setIsEditModalOpen(false);
+      fetchHistory();
+    } catch (err) {
+      console.error('Update Error:', err);
+      alert('Gagal memperbarui transaksi');
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await transactionService.delete(deletingTransactionId);
+      setIsConfirmDialogOpen(false);
+      fetchHistory();
+    } catch (err) {
+      console.error('Delete Error:', err);
+      alert('Gagal menghapus transaksi');
+    }
+  };
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -123,6 +176,7 @@ const Records = () => {
                   <th className="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-black text-slate-400">Description</th>
                   <th className="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-black text-slate-400">Type</th>
                   <th className="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-black text-slate-400 text-right">Amount</th>
+                  <th className="px-8 py-5 text-[10px] uppercase tracking-[0.2em] font-black text-slate-400 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -168,6 +222,24 @@ const Records = () => {
                     <td className="px-8 py-6 text-right">
                       <div className={`text-base font-black tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-700' : 'text-rose-600'}`}>
                         {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button 
+                          onClick={() => handleEditClick(tx)}
+                          className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-primary transition-all"
+                          title="Edit"
+                        >
+                          <span className="material-symbols-outlined text-base">edit_note</span>
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteClick(tx.id)}
+                          className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-all"
+                          title="Delete"
+                        >
+                          <span className="material-symbols-outlined text-base">delete_outline</span>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -253,6 +325,21 @@ const Records = () => {
             </div>
           </div>
         </div>
+        
+        {/* Modals and Dialogs */}
+        <EditTransactionModal 
+          isOpen={isEditModalOpen} 
+          onClose={() => setIsEditModalOpen(false)} 
+          onSave={handleSaveEdit}
+          transaction={editingTransaction}
+        />
+        <ConfirmDialog 
+          isOpen={isConfirmDialogOpen} 
+          onClose={() => setIsConfirmDialogOpen(false)} 
+          onConfirm={handleConfirmDelete}
+          title="Delete Transaction"
+          message="Are you sure you want to delete this transaction historical record?"
+        />
       </section>
     </Layout>
   );
