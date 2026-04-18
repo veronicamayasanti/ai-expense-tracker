@@ -11,7 +11,8 @@ async function getProfile(req, res) {
       data: sanitizeUser(profile)
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('getProfile Error:', error);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server.' });
   }
 }
 
@@ -19,6 +20,11 @@ async function updateProfile(req, res) {
   try {
     const id = req.user.id;
     const { name, whatsapp, avatar } = req.body;
+    
+    // Validasi input dasar
+    if (name !== undefined && name.trim().length < 2) {
+      return res.status(400).json({ status: 'error', message: 'Nama minimal 2 karakter.' });
+    }
     
     const updatedUser = await updateUser(id, { name, whatsapp, avatar });
     
@@ -28,7 +34,8 @@ async function updateProfile(req, res) {
       data: sanitizeUser(updatedUser)
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('updateProfile Error:', error);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server.' });
   }
 }
 

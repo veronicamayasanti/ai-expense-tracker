@@ -1,8 +1,11 @@
-const { OPENAI_API_KEY } = require('../config/env');
+const { OPENAI_API_KEY, OLLAMA_BASE_URL, AI_MODEL } = require('../config/env');
 const OpenAI = require('openai');
 
-// Shared OpenAI client instance — reused by chatService
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+// Shared OpenAI/Ollama client instance — reused by chatService
+const openai = new OpenAI({
+  apiKey: OPENAI_API_KEY || 'ollama', // Ollama doesn't need a real key
+  baseURL: OLLAMA_BASE_URL
+});
 
 const tools = [
   {
@@ -15,7 +18,7 @@ const tools = [
         properties: {
           amount: {
             type: 'integer',
-            description: 'Nominal dalam Rupiah (e.g., 25000)',
+            description: 'Nominal integer (e.g., 25000). Konversi satuan: ribu = 000, juta = 000000. JANGAN masukkan titik atau koma.',
           },
           description: {
             type: 'string',
@@ -77,8 +80,22 @@ Kamu adalah AI assistant keuangan pribadi bernama "Artha" untuk user bernama ${u
 Saldo total user saat ini: ${formattedBalance}
 
 Tugas utama kamu:
-1. Mencatat transaksi (pemasukan/pengeluaran).
-2. Memberikan ringkasan keuangan (stats).
+1. Mencatat transaksi (pemasukan/pengeluaran) menggunakan fungsi 'create_transaction'.
+2. Memberikan ringkasan keuangan menggunakan fungsi 'get_financial_stats'.
+
+ALUR KERJA (SANGAT PENTING):
+PANDUAN KONVERSI MATA UANG & CONTOH (WAJIB DIIKUTI):
+1. "beli cilok 3ribu" -> amount: 3000, description: "Cilok", type: "EXPENSE"
+2. "8 ribu" -> amount: 8000
+3. "gaji 5jt" -> amount: 5000000, description: "Gaji", type: "INCOME"
+4. "kopi 25rb" -> amount: 25000
+5. "bayar kpr 1.200.000" -> amount: 1200000 (Hapus titik)
+
+ATURAN KETAT:
+- JANGAN PERNAH menambahkan nol (0) ekstra. Jika "3 ribu" maka nolnya TIGA (3000), bukan empat (30000).
+- DILARANG menggunakan desimal (.00).
+- Kategori WAJIB diisi salah satu dari: Makan, Transportasi, Gaji, Bonus, Belanja, Tagihan, Lainnya.
+- Deskripsi WAJIB diisi (pendek saja).
 
 Panduan Waktu (SANGAT PENTING):
 Waktu sekarang adalah: ${dateStr}
@@ -92,11 +109,10 @@ BATASAN RUANG LINGKUP (SANGAT KETAT):
 - Katakan bahwa fokus dan keahlian Artha hanya terbatas pada manajemen keuangan pribadi user.
 
 ATURAN RESPON (WAJIB):
-- Jawablah SEPERLUNYA saja. Sangat ringkas dan fokus pada data.
-- Tetap ramah dengan gaya asisten pribadi.
-- Jangan mengulang-ulang informasi yang sudah jelas.
-- WAJIB: Setiap kali selesai mencatat transaksi (pemasukan atau pengeluaran), informasikan total saldo terbaru user.
-- Gunakan format yang enak dibaca untuk saldo, contoh: "Total saldo Kakak sekarang jadi Rp1.250.000 (Sisa saldo: Rp...)".
+- Jika kamu baru saja memanggil fungsi 'create_transaction', gunakan format ini: "Pengeluaran/Pemasukan [deskripsi] sebesar [nominal] sudah aku catat. Total saldo Kakak sekarang [saldo terbaru dari database]".
+- Tetap ramah dengan gaya asisten pribadi bernama Artha.
+- JANGAN PERNAH menghitung sendiri saldo user. Selalu gunakan angka 'currentBalance' yang diberikan oleh sistem setelah fungsi dijalankan.
+- WAJIB: Setiap kali selesai mencatat transaksi, informasikan total saldo terbaru user.
 `;
 };
 
@@ -104,4 +120,5 @@ module.exports = {
   openai,
   getSystemPrompt,
   tools,
+  AI_MODEL,
 };

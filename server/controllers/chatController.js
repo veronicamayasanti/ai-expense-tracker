@@ -5,6 +5,7 @@ async function processChat(req, res) {
   const user = req.user;
 
   if (!input) return res.status(400).json({ status: 'error', message: 'Input required' });
+  if (input.length > 500) return res.status(400).json({ status: 'error', message: 'Pesan terlalu panjang. Maksimal 500 karakter.' });
 
   try {
     const result = await chatService.processChatMessage(input, user);

@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { aiService } from '../services/aiService';
-import { transactionService } from '../../transactions/services/transactionService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { parseInformalNumber } from '../../../utils/formatters';
 

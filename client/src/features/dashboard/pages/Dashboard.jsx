@@ -8,8 +8,10 @@ import { motion } from 'framer-motion';
 import { formatCurrency } from '../../../utils/formatters';
 import EditTransactionModal from '../../transactions/components/EditTransactionModal';
 import ConfirmDialog from '../../transactions/components/ConfirmDialog';
+import { useToast } from '../../../components/Toast';
 
 const Dashboard = () => {
+  const toast = useToast();
   const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,11 +22,13 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      // Gunakan awal bulan berjalan (bukan 30 hari kebelakang)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
       
       const [statsRes, historyRes] = await Promise.all([
-        transactionService.getStats(monthAgo, today),
+        transactionService.getStats(startOfMonth, today),
         transactionService.getHistory(5)
       ]);
       
@@ -51,10 +55,11 @@ const Dashboard = () => {
     try {
       await transactionService.update(id, data);
       setIsEditModalOpen(false);
-      fetchData(); // Refresh both stats and history
+      toast.success('Transaksi berhasil diperbarui.');
+      fetchData();
     } catch (err) {
       console.error('Update Error:', err);
-      alert('Gagal memperbarui transaksi');
+      toast.error('Gagal memperbarui transaksi.');
     }
   };
 
@@ -62,10 +67,11 @@ const Dashboard = () => {
     try {
       await transactionService.delete(deletingTransactionId);
       setIsConfirmDialogOpen(false);
-      fetchData(); // Refresh both stats and history
+      toast.success('Transaksi berhasil dihapus.');
+      fetchData();
     } catch (err) {
       console.error('Delete Error:', err);
-      alert('Gagal menghapus transaksi');
+      toast.error('Gagal menghapus transaksi.');
     }
   };
 

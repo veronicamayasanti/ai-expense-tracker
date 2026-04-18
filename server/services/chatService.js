@@ -1,4 +1,4 @@
-const { getSystemPrompt, tools, openai } = require('./aiService');
+const { getSystemPrompt, tools, openai, AI_MODEL } = require('./aiService');
 const transactionService = require('./transactionService');
 
 /**
@@ -19,7 +19,7 @@ async function processChatMessage(input, user) {
 
   try {
     let response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: AI_MODEL,
       messages: messages,
       tools: tools,
       tool_choice: 'auto',
@@ -49,6 +49,18 @@ async function processChatMessage(input, user) {
         let resultData;
 
         if (functionName === 'create_transaction') {
+          // Fallback jika AI lupa field wajib
+          args.description = args.description || input.substring(0, 30); // Pakai potongan input user jika deskripsi kosong
+          args.type = args.type || 'EXPENSE';
+          args.category = args.category || 'Lainnya';
+
+          // Sanitasi amount: hapus spasi, hapus desimal (.00/,00), baru hapus titik ribuan
+          if (typeof args.amount === 'string') {
+            args.amount = args.amount.trim();
+            args.amount = args.amount.replace(/[,.]00$/, '');
+            args.amount = args.amount.replace(/[.,]/g, '');
+          }
+          
           resultData = await transactionService.createTransaction(user.id, args);
           finalResults.push({ type: 'create', transactionType: args.type, data: resultData });
         } else if (functionName === 'get_financial_stats') {
@@ -60,13 +72,18 @@ async function processChatMessage(input, user) {
           tool_call_id: toolCall.id,
           role: 'tool',
           name: functionName,
-          content: JSON.stringify(resultData || { error: 'Gagal mendapatkan data atau data tidak ditemukan' }),
+          content: JSON.stringify({
+            status: 'SUCCESS',
+            message: `Data transaksi '${args.description}' sebesar ${args.amount} berhasil disimpan.`,
+            ...resultData,
+            INSTRUCTION: `Sampaikan ke user bahwa transaksi berhasil. GUNAKAN SALDO INI: Rp${resultData?.currentBalance || 'Data tidak tersedia'}`
+          }),
         });
       }
 
       // Follow-up pass: let AI read results and potentially call more tools
       response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: AI_MODEL,
         messages: messages,
         tools: tools,
         tool_choice: 'auto',

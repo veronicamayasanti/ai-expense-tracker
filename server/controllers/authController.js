@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 
 // Helper to generate JWT
 const generateToken = (user) => {
-  return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+  return jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
 };
@@ -44,7 +44,8 @@ async function register(req, res) {
       }
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Register Error:', error);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server. Coba lagi nanti.' });
   }
 }
 
@@ -76,7 +77,8 @@ async function login(req, res) {
       }
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Login Error:', error);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server. Coba lagi nanti.' });
   }
 }
 

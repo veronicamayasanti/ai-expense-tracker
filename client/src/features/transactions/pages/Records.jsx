@@ -5,8 +5,10 @@ import { transactionService } from '../services/transactionService';
 import { formatCurrency } from '../../../utils/formatters';
 import EditTransactionModal from '../components/EditTransactionModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { useToast } from '../../../components/Toast';
 
 const Records = () => {
+  const toast = useToast();
   const [history, setHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -18,25 +20,8 @@ const Records = () => {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const limit = 10;
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const res = await transactionService.getHistory(limit, currentPage);
-        const { transactions = [], totalPages = 1, totalCount = 0 } = res.data.data || {};
-        setHistory(transactions);
-        setTotalPages(totalPages);
-        setTotalCount(totalCount);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, [currentPage]);
-
-  const fetchHistory = async () => {
+  // Single canonical fetchHistory – uses useCallback to stay stable
+  const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
       const res = await transactionService.getHistory(limit, currentPage);
@@ -46,10 +31,15 @@ const Records = () => {
       setTotalCount(totalCount);
     } catch (err) {
       console.error(err);
+      toast.error('Gagal memuat data transaksi.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const handleEditClick = (tx) => {
     setEditingTransaction(tx);
@@ -65,10 +55,11 @@ const Records = () => {
     try {
       await transactionService.update(id, data);
       setIsEditModalOpen(false);
+      toast.success('Transaksi berhasil diperbarui.');
       fetchHistory();
     } catch (err) {
       console.error('Update Error:', err);
-      alert('Gagal memperbarui transaksi');
+      toast.error('Gagal memperbarui transaksi.');
     }
   };
 
@@ -76,10 +67,11 @@ const Records = () => {
     try {
       await transactionService.delete(deletingTransactionId);
       setIsConfirmDialogOpen(false);
+      toast.success('Transaksi berhasil dihapus.');
       fetchHistory();
     } catch (err) {
       console.error('Delete Error:', err);
-      alert('Gagal menghapus transaksi');
+      toast.error('Gagal menghapus transaksi.');
     }
   };
 
@@ -114,7 +106,7 @@ const Records = () => {
       const transactions = res.data.data.transactions || [];
       
       if (transactions.length === 0) {
-        alert('Tidak ada data transaksi untuk diunduh.');
+        toast.info('Tidak ada data transaksi untuk diunduh.');
         return;
       }
 
@@ -136,9 +128,10 @@ const Records = () => {
       link.download = `arthaku_transactions_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       URL.revokeObjectURL(url);
+      toast.success('CSV berhasil diunduh!');
     } catch (err) {
       console.error('CSV Download Error:', err);
-      alert('Gagal mengunduh CSV.');
+      toast.error('Gagal mengunduh CSV.');
     }
   };
 
